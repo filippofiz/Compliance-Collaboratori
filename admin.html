@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UPtoTEN - Dashboard Amministratore</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="admin-styles.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <h1 class="logo">UPtoTEN</h1>
+            <p class="subtitle">Dashboard Amministratore</p>
+        </header>
+
+        <!-- Stats Box -->
+        <div class="stats-box">
+            <div class="stat-item">
+                <span class="stat-label">Totale Registrazioni</span>
+                <span class="stat-value" id="totalRecords">0</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Registrazioni Oggi</span>
+                <span class="stat-value" id="todayRecords">0</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Ultima Registrazione</span>
+                <span class="stat-value" id="lastRegistration">-</span>
+            </div>
+        </div>
+
+        <!-- Search and Filter -->
+        <div class="search-box">
+            <div class="search-container">
+                <input type="text" id="searchInput" placeholder="Cerca per nome, cognome, email..." class="search-input">
+                <button id="searchBtn" class="search-button">Cerca</button>
+            </div>
+            <div class="action-buttons">
+                <button id="refreshBtn" class="action-button">↻ Aggiorna</button>
+                <button id="exportBtn" class="action-button export">📥 Esporta CSV</button>
+            </div>
+        </div>
+
+        <!-- Data Table -->
+        <div class="table-container">
+            <div id="loadingIndicator" class="loading">
+                <div class="spinner"></div>
+                <p>Caricamento dati...</p>
+            </div>
+            
+            <table id="dataTable" class="data-table hidden">
+                <thead>
+                    <tr>
+                        <th>Data Registrazione</th>
+                        <th>Studente</th>
+                        <th>Email</th>
+                        <th>Scuola</th>
+                        <th>Genitore</th>
+                        <th>Telefono</th>
+                        <th>Città</th>
+                        <th>Azioni</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    <!-- I dati verranno inseriti qui dinamicamente -->
+                </tbody>
+            </table>
+            
+            <div id="noDataMessage" class="no-data hidden">
+                <p>Nessuna registrazione trovata</p>
+            </div>
+        </div>
+
+        <!-- Pagination -->
+        <div id="pagination" class="pagination hidden">
+            <button id="prevBtn" class="page-button">← Precedente</button>
+            <span id="pageInfo" class="page-info">Pagina 1 di 1</span>
+            <button id="nextBtn" class="page-button">Successiva →</button>
+        </div>
+
+        <!-- Modal per dettagli -->
+        <div id="detailModal" class="modal hidden">
+            <div class="modal-content">
+                <span class="close-modal" id="closeModal">&times;</span>
+                <h2>Dettagli Registrazione</h2>
+                <div id="modalDetails" class="modal-details">
+                    <!-- I dettagli verranno inseriti qui -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>© 2025 UPtoTEN - Dashboard Amministratore</p>
+            <p>Accesso riservato al personale autorizzato</p>
+        </footer>
+    </div>
+
+    <script src="config.js"></script>
+    <script src="admin.js"></script>
+</body>
+</html>

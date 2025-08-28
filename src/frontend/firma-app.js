@@ -196,6 +196,7 @@ function populateDataForm() {
 
 function isDataComplete() {
     // Controlla se tutti i dati obbligatori sono compilati
+    // Ignora valori temporanei come 'DA_COMPLETARE' o codici fiscali che iniziano con 'TEMP'
     const requiredFields = [
         'nome', 'cognome', 'email', 'codice_fiscale', 
         'telefono', 'data_nascita', 'luogo_nascita',
@@ -203,7 +204,12 @@ function isDataComplete() {
     ];
     
     for (const field of requiredFields) {
-        if (!collaboratore[field] || collaboratore[field].trim() === '') {
+        const value = collaboratore[field];
+        
+        // Controlla se il campo è vuoto o ha valore temporaneo
+        if (!value || value.trim() === '' || 
+            value === 'DA_COMPLETARE' || 
+            (field === 'codice_fiscale' && value.startsWith('TEMP'))) {
             return false;
         }
     }
@@ -212,6 +218,11 @@ function isDataComplete() {
     if (collaboratore.tipo_contratto === 'partita_iva' && 
         (!collaboratore.partita_iva || collaboratore.partita_iva.trim() === '')) {
         return false;
+    }
+    
+    // Usa anche il flag dati_completati se presente
+    if (collaboratore.dati_completati !== undefined) {
+        return collaboratore.dati_completati;
     }
     
     return true;

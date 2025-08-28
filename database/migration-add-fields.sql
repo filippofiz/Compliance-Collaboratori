@@ -5,20 +5,17 @@
 -- Descrizione: Aggiunge solo il campo nazionalità mancante
 -- =====================================================
 
--- Aggiungi solo il campo nazionalità che manca
+-- Aggiungi i campi mancanti
 ALTER TABLE collaboratori 
-ADD COLUMN IF NOT EXISTS nazionalita VARCHAR(100) DEFAULT 'Italiana';
+ADD COLUMN IF NOT EXISTS nazionalita VARCHAR(100) DEFAULT 'Italiana',
+ADD COLUMN IF NOT EXISTS dati_completati BOOLEAN DEFAULT false;
 
--- Commento sul nuovo campo
+-- Commenti sui nuovi campi
 COMMENT ON COLUMN collaboratori.nazionalita IS 'Nazionalità del collaboratore';
+COMMENT ON COLUMN collaboratori.dati_completati IS 'True quando il collaboratore ha completato tutti i dati richiesti';
 
--- Rimuovi il vincolo NOT NULL da codice_fiscale (ora è opzionale inizialmente)
-ALTER TABLE collaboratori 
-ALTER COLUMN codice_fiscale DROP NOT NULL;
-
--- Rimuovi il vincolo NOT NULL da cognome (ora è opzionale inizialmente)  
-ALTER TABLE collaboratori 
-ALTER COLUMN cognome DROP NOT NULL;
+-- Nota: codice_fiscale e cognome rimangono NOT NULL
+-- Il collaboratore li compilerà obbligatoriamente prima della firma
 
 -- Verifica che le modifiche siano state applicate
 SELECT 

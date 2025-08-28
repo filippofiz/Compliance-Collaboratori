@@ -948,10 +948,22 @@ async function handleNewCollaboratore(e) {
     if (collaboratore.provincia === '') collaboratore.provincia = null;
     if (collaboratore.iban === '') collaboratore.iban = null;
     
+    // Gestisci campi NOT NULL con valori temporanei se non forniti
+    // Questi verranno completati dal collaboratore prima della firma
+    if (!collaboratore.cognome || collaboratore.cognome === '') {
+        collaboratore.cognome = 'DA_COMPLETARE';
+    }
+    if (!collaboratore.codice_fiscale || collaboratore.codice_fiscale === '') {
+        // Genera CF temporaneo univoco basato su timestamp
+        const timestamp = Date.now().toString();
+        collaboratore.codice_fiscale = 'TEMP' + timestamp.substring(timestamp.length - 12) + 'X';
+    }
+    
     // Imposta valori default
     collaboratore.stato = 'pending';
     collaboratore.limite_annuale = 5000;
     collaboratore.importo_anno_corrente = 0;
+    collaboratore.dati_completati = false; // Flag per indicare dati da completare
     
     try {
         // Salva su Supabase

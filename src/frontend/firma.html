@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co; font-src 'self' data:;">
+    <title>UpToTen - Firma Documenti Compliance</title>
+    <link rel="stylesheet" href="firma-styles.css">
+    
+    <!-- Config centralizzata -->
+    <script src="../shared/config.js"></script>
+    <script src="../shared/logger.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <!-- EmailJS per invio email di conferma -->
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <h1 class="logo">UpToTen Compliance</h1>
+            <p class="subtitle">Portale Firma Documenti</p>
+        </header>
+
+        <!-- Loading -->
+        <div id="loading" class="loading-container">
+            <div class="spinner"></div>
+            <p>Caricamento documenti...</p>
+        </div>
+
+        <!-- Errore -->
+        <div id="error" class="error-container" style="display: none;">
+            <h2>⚠️ Errore</h2>
+            <p id="errorMessage"></p>
+            <a href="#" id="btnRetry" class="btn">Riprova</a>
+        </div>
+
+        <!-- Main Content -->
+        <main id="mainContent" style="display: none;">
+            <!-- Info Collaboratore -->
+            <div class="info-card">
+                <h2>Benvenuto/a <span id="nomeCollaboratore"></span></h2>
+                <p>Hai <strong id="numDocumenti">0</strong> documenti da firmare per completare la compliance.</p>
+            </div>
+
+            <!-- Lista Documenti -->
+            <div class="documents-section">
+                <h3>📄 Documenti da Firmare</h3>
+                <div id="documentsList" class="documents-list">
+                    <!-- Popolato dinamicamente -->
+                </div>
+            </div>
+
+            <!-- Sezione Firma -->
+            <div id="signSection" class="sign-section" style="display: none;">
+                <h3>✍️ Firma Digitale</h3>
+                <div class="sign-form">
+                    <p>Per completare la firma, conferma i tuoi dati:</p>
+                    
+                    <div class="form-group">
+                        <label for="signName">Nome e Cognome:</label>
+                        <input type="text" id="signName" class="form-control" 
+                               onkeyup="checkCanSign()" placeholder="Mario Rossi">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="signEmail">Email:</label>
+                        <input type="email" id="signEmail" class="form-control" 
+                               onkeyup="checkCanSign()" placeholder="mario.rossi@example.com">
+                    </div>
+                    
+                    <div class="sign-info">
+                        <p>📧 Riceverai un'email di conferma per validare la tua firma digitale.</p>
+                        <p>🔒 La firma è legalmente valida e protetta da hash SHA-256.</p>
+                    </div>
+                    
+                    <button id="signAllBtn" class="btn btn-primary btn-large" disabled>
+                        Firma Tutti i Documenti
+                    </button>
+                </div>
+            </div>
+
+            <!-- Documenti Firmati -->
+            <div class="signed-section" id="signedSection" style="display: none;">
+                <h3>✅ Documenti Firmati</h3>
+                <div id="signedList" class="signed-list">
+                    <!-- Popolato dinamicamente -->
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer>
+            <p>© 2025 UpToTen - Sistema Compliance</p>
+            <p>Per assistenza: support@uptoten.it</p>
+        </footer>
+    </div>
+
+    <script src="firma-app.js"></script>
+</body>
+</html>

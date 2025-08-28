@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co; font-src 'self' data:;">
+    <title>Compliance Collaboratori - Admin Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+    
+    <!-- Configurazione centralizzata -->
+    <script src="../shared/config.js"></script>
+    <script src="../shared/logger.js"></script>
+    
+    <!-- Supabase Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <!-- EmailJS per invio email -->
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    
+    <!-- Modulo Validazione Input -->
+    <script src="validation.js"></script>
+    
+    <!-- Gestione Errori e Notifiche -->
+    <script src="error-handler.js"></script>
+    
+    <!-- Sistema Dialog Personalizzati -->
+    <script src="dialogs.js"></script>
+    
+    <!-- Ottimizzazione Performance -->
+    <script src="performance.js"></script>
+</head>
+<body>
+    <!-- Login Form -->
+    <div id="loginForm" class="login-container">
+        <div class="login-box">
+            <h1>UpToTen Compliance</h1>
+            <p class="subtitle">Gestione Collaboratori</p>
+            <form id="loginFormElement">
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" placeholder="admin@uptoten.it" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" placeholder="Password" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Accedi</button>
+            </form>
+            <div class="login-info">
+                <p>Credenziali test: admin@uptoten.it / uptoten2024</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dashboard -->
+    <div id="dashboard" style="display: none;">
+        <header class="header">
+            <div class="header-content">
+                <h1>Compliance Collaboratori</h1>
+                <div class="user-info">
+                    <span id="userEmail"></span>
+                    <button id="logoutBtn" class="btn btn-secondary">Logout</button>
+                </div>
+            </div>
+        </header>
+
+        <main class="container">
+            <!-- Stats Cards -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3>Collaboratori Attivi</h3>
+                    <p class="stat-value" id="totalCollaboratori">0</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Documenti da Firmare</h3>
+                    <p class="stat-value" id="documentiDaFirmare">0</p>
+                </div>
+                <div class="stat-card warning">
+                    <h3>Prossimi a Limite €5.000</h3>
+                    <p class="stat-value" id="limitiVicini">0</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Ricevute del Mese</h3>
+                    <p class="stat-value" id="ricevuteMese">0</p>
+                </div>
+            </div>
+
+            <!-- Tabs -->
+            <div class="tabs">
+                <button class="tab-button active" data-tab="collaboratori">Collaboratori</button>
+                <button class="tab-button" data-tab="documenti">Documenti</button>
+                <button class="tab-button" data-tab="ricevute">Ricevute</button>
+                <button class="tab-button" data-tab="compliance">Compliance Status</button>
+            </div>
+
+            <!-- Tab Content -->
+            <div class="tab-content">
+                <!-- Collaboratori Tab -->
+                <div id="collaboratori-tab" class="tab-panel active">
+                    <div class="actions-bar">
+                        <input type="text" id="searchCollaboratori" placeholder="Cerca collaboratore..." class="search-input">
+                        <button class="btn btn-primary" id="btnNewCollaboratore">+ Nuovo Collaboratore</button>
+                    </div>
+                    
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Nome</th>
+                                <th>Email</th>
+                                <th>Tipo</th>
+                                <th>Contratto</th>
+                                <th>Limite/Anno</th>
+                                <th>Utilizzato</th>
+                                <th>Stato Firma</th>
+                                <th>Stato</th>
+                                <th>Azioni</th>
+                            </tr>
+                        </thead>
+                        <tbody id="collaboratoriTableBody">
+                            <tr>
+                                <td colspan="8" class="loading">Caricamento...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Documenti Tab -->
+                <div id="documenti-tab" class="tab-panel">
+                    <div class="actions-bar">
+                        <select id="filterDocumenti" class="filter-select">
+                            <option value="">Tutti i documenti</option>
+                            <option value="da_firmare">Da firmare</option>
+                            <option value="firmato">Firmati</option>
+                            <option value="scaduto">Scaduti</option>
+                        </select>
+                        <button class="btn btn-primary" id="btnNewDocument">+ Nuovo Documento</button>
+                    </div>
+                    
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Collaboratore</th>
+                                <th>Tipo Documento</th>
+                                <th>Titolo</th>
+                                <th>Stato</th>
+                                <th>Data Firma</th>
+                                <th>Validità</th>
+                                <th>Azioni</th>
+                            </tr>
+                        </thead>
+                        <tbody id="documentiTableBody">
+                            <tr>
+                                <td colspan="7" class="loading">Caricamento...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Ricevute Tab -->
+                <div id="ricevute-tab" class="tab-panel">
+                    <div class="actions-bar">
+                        <input type="month" id="filterMese" class="filter-input">
+                        <select id="filterStatoPagamento" class="filter-select">
+                            <option value="">Tutti gli stati</option>
+                            <option value="da_pagare">Da pagare</option>
+                            <option value="pagato">Pagati</option>
+                        </select>
+                        <button class="btn btn-success" id="btnExportRicevute">📥 Export CSV</button>
+                    </div>
+                    
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Numero</th>
+                                <th>Collaboratore</th>
+                                <th>Data</th>
+                                <th>Periodo</th>
+                                <th>Importo Lordo</th>
+                                <th>Ritenuta</th>
+                                <th>Netto</th>
+                                <th>Stato</th>
+                                <th>Azioni</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ricevuteTableBody">
+                            <tr>
+                                <td colspan="9" class="loading">Caricamento...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Compliance Status Tab -->
+                <div id="compliance-tab" class="tab-panel">
+                    <div class="compliance-grid">
+                        <div class="compliance-card">
+                            <h3>🔴 Documenti Mancanti</h3>
+                            <ul id="documentiMancanti"></ul>
+                        </div>
+                        <div class="compliance-card">
+                            <h3>⚠️ Vicini al Limite €5.000</h3>
+                            <ul id="limitiViciniList"></ul>
+                        </div>
+                        <div class="compliance-card">
+                            <h3>📅 Documenti in Scadenza</h3>
+                            <ul id="documentiScadenza"></ul>
+                        </div>
+                        <div class="compliance-card">
+                            <h3>✅ Compliance OK</h3>
+                            <ul id="complianceOk"></ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Modal -->
+        <div id="modal" class="modal" style="display: none;">
+            <div class="modal-content">
+                <span class="close" id="modalClose">&times;</span>
+                <div id="modalBody"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PDF-lib per manipolazione PDF -->
+    <script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+    
+    <!-- Generatore PDF personalizzati -->
+    <script src="pdf-generator.js"></script>
+    
+    <!-- Template documenti HTML -->
+    <script src="document-templates.js"></script>
+    
+    <!-- App principale -->
+    <script src="app.js"></script>
+</body>
+</html>

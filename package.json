@@ -1,0 +1,45 @@
+{
+  "name": "uptoten-compliance",
+  "version": "1.0.0",
+  "description": "Sistema di gestione compliance e fatturazione per UpToTen",
+  "main": "src/admin/app.js",
+  "scripts": {
+    "start": "npx http-server -p 3000",
+    "dev": "npx http-server -p 3000 -c-1",
+    "supabase:start": "npx supabase start",
+    "supabase:stop": "npx supabase stop",
+    "supabase:migrate": "npx supabase db push",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "compliance",
+    "fatturazione",
+    "uptoten",
+    "supabase"
+  ],
+  "author": "UpToTen",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.39.3",
+    "@emailjs/browser": "^3.11.0",
+    "pdf-lib": "^1.17.1",
+    "jspdf": "^2.5.1",
+    "html2canvas": "^1.4.1"
+  },
+  "devDependencies": {
+    "http-server": "^14.1.1",
+    "supabase": "^1.142.2"
+  },
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=7.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/uptoten/compliance.git"
+  },
+  "bugs": {
+    "url": "https://github.com/uptoten/compliance/issues"
+  },
+  "homepage": "https://github.com/uptoten/compliance#readme"
+}

@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co; font-src 'self' data:;">
+    <title>UpToTen - Conferma Firma Digitale</title>
+    <link rel="stylesheet" href="firma-styles.css">
+    
+    <!-- Config e Supabase -->
+    <script src="../shared/config.js"></script>
+    <script src="../shared/logger.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <h1 class="logo">UpToTen Compliance</h1>
+            <p class="subtitle">Conferma Firma Digitale</p>
+        </header>
+
+        <!-- Loading -->
+        <div id="loading" class="loading-container">
+            <div class="spinner"></div>
+            <p>Verifica in corso...</p>
+        </div>
+
+        <!-- Errore -->
+        <div id="error" class="error-container" style="display: none;">
+            <h2>⚠️ Errore Verifica</h2>
+            <p id="errorMessage"></p>
+            <a href="mailto:support@uptoten.it" class="btn">Contatta Supporto</a>
+        </div>
+
+        <!-- Success -->
+        <div id="success" class="success-container" style="display: none;">
+            <h2>✅ Firma Confermata!</h2>
+            <p id="successMessage"></p>
+            <div class="success-details" id="successDetails">
+                <!-- Popolato dinamicamente -->
+            </div>
+            <button id="btnPrint" class="btn btn-primary">Stampa Ricevuta</button>
+        </div>
+
+        <!-- Footer -->
+        <footer>
+            <p>© 2025 UpToTen - Sistema Compliance</p>
+            <p>Per assistenza: support@uptoten.it</p>
+        </footer>
+    </div>
+
+    <script src="conferma-app.js"></script>
+</body>
+</html>

@@ -11,9 +11,45 @@
       "Bash(git init:*)",
       "Bash(git remote add:*)",
       "Bash(git add:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(node:*)",
+      "Bash(mkdir:*)",
+      "Bash(psql:*)",
+      "Bash(winget search:*)",
+      "Bash(npm start)",
+      "Bash(taskkill:*)",
+      "Bash(powershell:*)",
+      "Bash(sqlite3:*)",
+      "Bash(rm:*)",
+      "Bash(start admin.html)",
+      "Read(C:\\App UpToTen/**)",
+      "Bash(dir)",
+      "Bash(move \"Dati di fatturazione\" \"Compliance Collaboratori\")",
+      "Bash(xcopy:*)",
+      "Bash(move:*)",
+      "Bash(rd:*)",
+      "Bash(cmd /c:*)",
+      "Bash(dir \"C:\\App UpToTen\\Dati di fatturazione\")",
+      "Bash(start index.html)",
+      "Bash(start C:App UpToTenDati di fatturazionefrontendfirma.html)",
+      "Bash(start \"C:\\App UpToTen\\Dati di fatturazione\\frontend\\firma.html\")",
+      "WebSearch",
+      "Bash(supabase secrets set:*)",
+      "Bash(npm --version)",
+      "Bash(npx supabase:*)",
+      "Bash(start \"C:\\App UpToTen\\Dati di fatturazione\\test-email.html\")",
+      "Bash(dir \"C:\\App UpToTen\\Dati di fatturazione\\pdf documenti\")",
+      "Bash(dir \"C:\\App UpToTen\\Dati di fatturazione\\PDF-documentazione da firmare\")",
+      "Bash(start chrome:*)",
+      "Bash(dir:*)",
+      "mcp__ide__getDiagnostics",
+      "Bash(find:*)"
     ],
     "deny": [],
-    "ask": []
+    "ask": [],
+    "additionalDirectories": [
+      "C:\\App UpToTen"
+    ]
   }
 }

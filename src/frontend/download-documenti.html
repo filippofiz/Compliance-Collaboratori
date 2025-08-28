@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co; font-src 'self' data:;">
+    <title>Download Documenti Firmati - UpToTen</title>
+    <!-- Configurazione centralizzata -->
+    <script src="../shared/config.js"></script>
+    <script src="../shared/logger.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+    
+    <!-- jsPDF per conversione HTML to PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    
+    <style>
+        .download-container {
+            max-width: 900px;
+            margin: 50px auto;
+            padding: 40px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+        
+        .success-header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 30px;
+            border-bottom: 3px solid #52c41a;
+        }
+        
+        .success-icon {
+            font-size: 72px;
+            margin-bottom: 20px;
+        }
+        
+        .documents-grid {
+            display: grid;
+            gap: 20px;
+            margin: 30px 0;
+        }
+        
+        .document-download-card {
+            border: 2px solid #e8e8e8;
+            border-radius: 10px;
+            padding: 20px;
+            background: #fafafa;
+            transition: all 0.3s ease;
+        }
+        
+        .document-download-card:hover {
+            border-color: #1890ff;
+            background: #f0f8ff;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(24, 144, 255, 0.2);
+        }
+        
+        .document-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .document-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .document-meta {
+            display: grid;
+            gap: 8px;
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 15px;
+        }
+        
+        .document-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn-download {
+            flex: 1;
+            background: linear-gradient(135deg, #1890ff, #40a9ff);
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-download:hover {
+            background: linear-gradient(135deg, #40a9ff, #1890ff);
+            transform: scale(1.05);
+        }
+        
+        .btn-view {
+            background: white;
+            color: #1890ff;
+            border: 2px solid #1890ff;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-view:hover {
+            background: #1890ff;
+            color: white;
+        }
+        
+        .download-all-btn {
+            background: linear-gradient(135deg, #52c41a, #73d13d);
+            color: white;
+            padding: 15px 40px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: bold;
+            display: block;
+            margin: 30px auto;
+            transition: all 0.3s ease;
+        }
+        
+        .download-all-btn:hover {
+            background: linear-gradient(135deg, #73d13d, #52c41a);
+            transform: scale(1.05);
+        }
+        
+        .legal-notice {
+            background: #f6ffed;
+            border: 1px solid #b7eb8f;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 30px;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 50px;
+            font-size: 18px;
+            color: #666;
+        }
+        
+        .error {
+            background: #fff1f0;
+            border: 1px solid #ffccc7;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            color: #cf1322;
+        }
+    </style>
+</head>
+<body>
+    <div class="download-container">
+        <!-- Loading -->
+        <div id="loading" class="loading">
+            ⏳ Caricamento documenti firmati...
+        </div>
+        
+        <!-- Error -->
+        <div id="error" class="error" style="display: none;">
+            <h3>❌ Errore</h3>
+            <p id="errorMessage"></p>
+        </div>
+        
+        <!-- Success Content -->
+        <div id="content" style="display: none;">
+            <div class="success-header">
+                <div class="success-icon">✅</div>
+                <h1>Documenti Firmati con Successo!</h1>
+                <p id="collaboratorInfo"></p>
+            </div>
+            
+            <div class="documents-grid" id="documentsGrid">
+                <!-- I documenti saranno inseriti qui -->
+            </div>
+            
+            <button class="download-all-btn" id="btnDownloadAll">
+                📦 Scarica Tutti i Documenti
+            </button>
+            
+            <div class="legal-notice">
+                <h4>⚖️ Validità Legale</h4>
+                <p>I documenti scaricati sono firmati digitalmente e hanno piena validità legale ai sensi del:</p>
+                <ul>
+                    <li>Regolamento eIDAS (UE) n. 910/2014</li>
+                    <li>D.Lgs. 82/2005 (Codice dell'Amministrazione Digitale)</li>
+                </ul>
+                <p><strong>Conserva questi documenti per i tuoi archivi.</strong></p>
+            </div>
+        </div>
+    </div>
+    
+    <script src="download-documenti.js"></script>
+</body>
+</html>

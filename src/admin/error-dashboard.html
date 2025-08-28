@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co; font-src 'self' data:;">
+    <title>Error Monitoring Dashboard - UpToTen</title>
+    
+    <!-- Configurazione centralizzata -->
+    <script src="../shared/config.js"></script>
+    <script src="../shared/logger.js"></script>
+    <script src="../shared/error-monitor.js"></script>
+    
+    <!-- Supabase Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .dashboard-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+        
+        header {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        h1 { margin-bottom: 10px; }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            padding: 30px;
+            background: #f8f9fa;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        
+        .stat-card h3 {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+        
+        .stat-value {
+            font-size: 32px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        
+        .stat-card.critical { border-left: 4px solid #ff4d4f; }
+        .stat-card.warning { border-left: 4px solid #faad14; }
+        .stat-card.success { border-left: 4px solid #52c41a; }
+        .stat-card.info { border-left: 4px solid #1890ff; }
+        
+        .controls {
+            padding: 20px 30px;
+            background: #fff;
+            border-bottom: 1px solid #e8e8e8;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        
+        .btn-danger {
+            background: #ff4d4f;
+            color: white;
+        }
+        
+        .btn-success {
+            background: #52c41a;
+            color: white;
+        }
+        
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); }
+        
+        .error-list {
+            padding: 30px;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+        
+        .error-item {
+            background: white;
+            border: 1px solid #e8e8e8;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            transition: all 0.3s;
+        }
+        
+        .error-item:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            border-color: #667eea;
+        }
+        
+        .error-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .error-type {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        
+        .error-type.critical { background: #ff4d4f; color: white; }
+        .error-type.error { background: #ff7875; color: white; }
+        .error-type.warning { background: #faad14; color: white; }
+        .error-type.info { background: #1890ff; color: white; }
+        
+        .error-message {
+            font-family: 'Courier New', monospace;
+            background: #f5f5f5;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            word-break: break-all;
+        }
+        
+        .error-meta {
+            font-size: 12px;
+            color: #666;
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .error-stack {
+            background: #2b2b2b;
+            color: #52c41a;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            margin-top: 10px;
+            max-height: 200px;
+            overflow-y: auto;
+            display: none;
+        }
+        
+        .error-item.expanded .error-stack {
+            display: block;
+        }
+        
+        .chart-container {
+            padding: 30px;
+            background: white;
+        }
+        
+        .chart {
+            height: 300px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            position: relative;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 50px;
+            color: #666;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 50px;
+            color: #999;
+        }
+        
+        .empty-state .icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+        
+        .filter-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            background: #f0f2f5;
+            border-radius: 20px;
+            margin: 0 5px;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .live-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 5px 15px;
+            background: #52c41a;
+            color: white;
+            border-radius: 20px;
+            animation: pulse 2s infinite;
+        }
+        
+        .live-dot {
+            width: 8px;
+            height: 8px;
+            background: white;
+            border-radius: 50%;
+            animation: pulse 1s infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <header>
+            <h1>🛡️ Error Monitoring Dashboard</h1>
+            <p>Sistema di monitoraggio errori in tempo reale</p>
+            <div style="margin-top: 20px;">
+                <span class="live-indicator">
+                    <span class="live-dot"></span>
+                    LIVE MONITORING
+                </span>
+            </div>
+        </header>
+        
+        <div class="stats-grid">
+            <div class="stat-card info">
+                <h3>📊 Sessione Corrente</h3>
+                <div class="stat-value" id="currentErrors">0</div>
+                <small>Errori in questa sessione</small>
+            </div>
+            
+            <div class="stat-card critical">
+                <h3>🚨 Errori Critici</h3>
+                <div class="stat-value" id="criticalCount">0</div>
+                <small>Ultimi 24h</small>
+            </div>
+            
+            <div class="stat-card warning">
+                <h3>⚠️ Warning</h3>
+                <div class="stat-value" id="warningCount">0</div>
+                <small>Ultimi 24h</small>
+            </div>
+            
+            <div class="stat-card success">
+                <h3>⏱️ Uptime</h3>
+                <div class="stat-value" id="uptime">0m</div>
+                <small>Sessione attiva</small>
+            </div>
+            
+            <div class="stat-card info">
+                <h3>📈 Error Rate</h3>
+                <div class="stat-value" id="errorRate">0</div>
+                <small>Errori/minuto</small>
+            </div>
+            
+            <div class="stat-card">
+                <h3>💾 Storage</h3>
+                <div class="stat-value" id="storageCount">0</div>
+                <small>Errori in localStorage</small>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <button class="btn btn-primary" id="btnRefresh">🔄 Aggiorna</button>
+            <button class="btn btn-danger" id="btnClear">🗑️ Pulisci Errori</button>
+            <button class="btn btn-success" id="btnExport">📥 Esporta Report</button>
+            <button class="btn btn-primary" id="btnLoadHistory">📜 Carica Storico</button>
+            
+            <div style="margin-left: auto;">
+                <span class="filter-badge">Solo Critici</span>
+                <input type="checkbox" id="filterCritical">
+                <span class="filter-badge">Solo Warning</span>
+                <input type="checkbox" id="filterWarning">
+            </div>
+        </div>
+        
+        <div class="error-list" id="errorList">
+            <div class="empty-state">
+                <div class="icon">✅</div>
+                <h3>Nessun errore rilevato</h3>
+                <p>Il sistema sta funzionando correttamente</p>
+            </div>
+        </div>
+        
+        <div class="chart-container">
+            <h3>📈 Trend Errori (Ultimi 60 minuti)</h3>
+            <div class="chart" id="errorChart">
+                <canvas id="chartCanvas" width="100%" height="300"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let supabase = null;
+        let refreshInterval = null;
+        
+        // Inizializza
+        document.addEventListener('DOMContentLoaded', () => {
+            initDashboard();
+            attachEventHandlers();
+            startAutoRefresh();
+        });
+        
+        function initDashboard() {
+            // Inizializza Supabase se disponibile
+            if (window.ComplianceConfig && window.supabase) {
+                const config = window.ComplianceConfig;
+                supabase = window.supabase.createClient(config.supabase.url, config.supabase.anonKey);
+            }
+            
+            updateStats();
+            loadErrors();
+        }
+        
+        function attachEventHandlers() {
+            document.getElementById('btnRefresh').addEventListener('click', () => {
+                updateStats();
+                loadErrors();
+            });
+            
+            document.getElementById('btnClear').addEventListener('click', clearErrors);
+            document.getElementById('btnExport').addEventListener('click', exportReport);
+            document.getElementById('btnLoadHistory').addEventListener('click', loadHistoricalData);
+            
+            document.getElementById('filterCritical').addEventListener('change', filterErrors);
+            document.getElementById('filterWarning').addEventListener('change', filterErrors);
+        }
+        
+        function startAutoRefresh() {
+            refreshInterval = setInterval(() => {
+                updateStats();
+            }, 5000); // Aggiorna ogni 5 secondi
+        }
+        
+        function updateStats() {
+            if (!window.errorMonitor) return;
+            
+            const stats = window.errorMonitor.getStats();
+            
+            document.getElementById('currentErrors').textContent = stats.totalErrors;
+            document.getElementById('criticalCount').textContent = stats.criticalErrors;
+            document.getElementById('warningCount').textContent = stats.warnings;
+            
+            // Calcola uptime
+            const uptimeMinutes = Math.floor(stats.uptime / 60000);
+            document.getElementById('uptime').textContent = uptimeMinutes + 'm';
+            
+            // Error rate
+            document.getElementById('errorRate').textContent = stats.errorRate.toFixed(2);
+            
+            // Storage count
+            try {
+                const stored = JSON.parse(localStorage.getItem('errorReports') || '[]');
+                document.getElementById('storageCount').textContent = stored.length;
+            } catch {
+                document.getElementById('storageCount').textContent = '0';
+            }
+        }
+        
+        function loadErrors() {
+            if (!window.errorMonitor) return;
+            
+            const stats = window.errorMonitor.getStats();
+            const errors = stats.recentErrors;
+            
+            const errorList = document.getElementById('errorList');
+            
+            if (errors.length === 0) {
+                errorList.innerHTML = `
+                    <div class="empty-state">
+                        <div class="icon">✅</div>
+                        <h3>Nessun errore rilevato</h3>
+                        <p>Il sistema sta funzionando correttamente</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            errorList.innerHTML = errors.map((error, index) => `
+                <div class="error-item" data-index="${index}">
+                    <div class="error-header">
+                        <span class="error-type ${error.severity || 'error'}">${error.severity || 'ERROR'}</span>
+                        <span>${error.type || 'unknown'}</span>
+                        <span style="margin-left: auto; color: #666; font-size: 12px;">
+                            ${new Date(error.timestamp).toLocaleTimeString()}
+                        </span>
+                    </div>
+                    <div class="error-message">${error.message || 'No message'}</div>
+                    <div class="error-meta">
+                        ${error.url ? `<span>📍 ${error.url}</span>` : ''}
+                        ${error.filename ? `<span>📄 ${error.filename}:${error.lineno}:${error.colno}</span>` : ''}
+                        ${error.status ? `<span>🔢 Status: ${error.status}</span>` : ''}
+                        ${error.duration ? `<span>⏱️ ${error.duration}ms</span>` : ''}
+                    </div>
+                    ${error.stack ? `<pre class="error-stack">${error.stack}</pre>` : ''}
+                </div>
+            `).join('');
+            
+            // Aggiungi click handler per espandere
+            errorList.querySelectorAll('.error-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    item.classList.toggle('expanded');
+                });
+            });
+        }
+        
+        function clearErrors() {
+            if (confirm('Vuoi davvero cancellare tutti gli errori?')) {
+                window.errorMonitor?.clearErrors();
+                localStorage.removeItem('errorReports');
+                updateStats();
+                loadErrors();
+                logger.info('Errori cancellati');
+            }
+        }
+        
+        function exportReport() {
+            const stats = window.errorMonitor?.getStats();
+            if (!stats) return;
+            
+            const report = {
+                exportDate: new Date().toISOString(),
+                ...stats
+            };
+            
+            const blob = new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `error-report-${Date.now()}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            logger.info('Report esportato');
+        }
+        
+        async function loadHistoricalData() {
+            if (!supabase) {
+                alert('Supabase non configurato');
+                return;
+            }
+            
+            try {
+                const { data, error } = await supabase
+                    .from('error_logs')
+                    .select('*')
+                    .order('timestamp', { ascending: false })
+                    .limit(50);
+                
+                if (error) throw error;
+                
+                if (data && data.length > 0) {
+                    // Mostra dati storici
+                    logger.info(`Caricati ${data.length} log storici`);
+                    // TODO: Visualizza in UI
+                } else {
+                    alert('Nessun dato storico trovato');
+                }
+            } catch (err) {
+                logger.error('Errore caricamento storico:', err);
+                alert('Errore nel caricamento dati storici');
+            }
+        }
+        
+        function filterErrors() {
+            const filterCritical = document.getElementById('filterCritical').checked;
+            const filterWarning = document.getElementById('filterWarning').checked;
+            
+            // TODO: Implementa filtro
+            loadErrors();
+        }
+    </script>
+</body>
+</html>

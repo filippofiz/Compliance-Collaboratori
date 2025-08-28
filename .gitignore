@@ -68,3 +68,7 @@ sentry.properties
 
 # Claude settings
 .claude/
+
+# Report analisi (non committare)
+PDF-documentazione da firmare/REPORT_*.html
+**/REPORT_ANALISI_*.html

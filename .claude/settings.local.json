@@ -44,7 +44,8 @@
       "Bash(start chrome:*)",
       "Bash(dir:*)",
       "mcp__ide__getDiagnostics",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(git rm:*)"
     ],
     "deny": [],
     "ask": [],

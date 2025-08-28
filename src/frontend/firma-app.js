@@ -54,6 +54,12 @@ function attachEventListeners() {
             location.reload();
         });
     }
+    
+    // Form completamento dati
+    const dataForm = document.getElementById('dataCompletionForm');
+    if (dataForm) {
+        dataForm.addEventListener('submit', handleDataCompletion);
+    }
 }
 
 async function initializeApp() {
@@ -122,11 +128,27 @@ async function loadCollaboratore(id) {
     console.log('Collaboratore caricato:', collaboratore);
     
     document.getElementById('nomeCollaboratore').textContent = 
-        `${collaboratore.nome} ${collaboratore.cognome}`;
+        `${collaboratore.nome} ${collaboratore.cognome || ''}`;
     
-    // Pre-compila i campi della firma
-    document.getElementById('signName').value = `${collaboratore.nome} ${collaboratore.cognome}`;
-    document.getElementById('signEmail').value = collaboratore.email;
+    // Pre-compila i campi del form completamento dati
+    populateDataForm();
+    
+    // Controlla se i dati sono completi
+    if (isDataComplete()) {
+        // Nascondi form completamento e mostra documenti
+        document.getElementById('dataCompletionSection').style.display = 'none';
+        document.getElementById('documentsSection').style.display = 'block';
+        document.getElementById('signSection').style.display = 'block';
+        
+        // Pre-compila i campi della firma
+        document.getElementById('signName').value = `${collaboratore.nome} ${collaboratore.cognome}`;
+        document.getElementById('signEmail').value = collaboratore.email;
+    } else {
+        // Mostra form completamento dati
+        document.getElementById('dataCompletionSection').style.display = 'block';
+        document.getElementById('documentsSection').style.display = 'none';
+        document.getElementById('signSection').style.display = 'none';
+    }
 }
 
 async function loadDocumenti(collaboratoreId) {
@@ -143,6 +165,150 @@ async function loadDocumenti(collaboratoreId) {
     document.getElementById('numDocumenti').textContent = nonFirmati.length;
     
     renderDocumenti();
+}
+
+// ===== GESTIONE COMPLETAMENTO DATI =====
+function populateDataForm() {
+    // Popola il form con i dati esistenti del collaboratore
+    document.getElementById('dataNome').value = collaboratore.nome || '';
+    document.getElementById('dataCognome').value = collaboratore.cognome || '';
+    document.getElementById('dataEmail').value = collaboratore.email || '';
+    document.getElementById('dataCF').value = collaboratore.codice_fiscale || '';
+    document.getElementById('dataTelefono').value = collaboratore.telefono || '';
+    document.getElementById('dataDataNascita').value = collaboratore.data_nascita || '';
+    document.getElementById('dataLuogoNascita').value = collaboratore.luogo_nascita || '';
+    document.getElementById('dataNazionalita').value = collaboratore.nazionalita || 'Italiana';
+    document.getElementById('dataIndirizzo').value = collaboratore.indirizzo || '';
+    document.getElementById('dataCitta').value = collaboratore.citta || '';
+    document.getElementById('dataCap').value = collaboratore.cap || '';
+    document.getElementById('dataProvincia').value = collaboratore.provincia || '';
+    document.getElementById('dataIban').value = collaboratore.iban || '';
+    document.getElementById('dataPartitaIva').value = collaboratore.partita_iva || '';
+    
+    // Mostra campo partita IVA se necessario
+    if (collaboratore.tipo_contratto === 'partita_iva' || collaboratore.tipo_contratto === 'misto') {
+        document.getElementById('partitaIvaSection').style.display = 'block';
+        if (collaboratore.tipo_contratto === 'partita_iva') {
+            document.getElementById('dataPartitaIva').setAttribute('required', 'required');
+        }
+    }
+}
+
+function isDataComplete() {
+    // Controlla se tutti i dati obbligatori sono compilati
+    const requiredFields = [
+        'nome', 'cognome', 'email', 'codice_fiscale', 
+        'telefono', 'data_nascita', 'luogo_nascita',
+        'indirizzo', 'citta', 'cap', 'provincia', 'iban'
+    ];
+    
+    for (const field of requiredFields) {
+        if (!collaboratore[field] || collaboratore[field].trim() === '') {
+            return false;
+        }
+    }
+    
+    // Se partita IVA è richiesta, controlla anche quella
+    if (collaboratore.tipo_contratto === 'partita_iva' && 
+        (!collaboratore.partita_iva || collaboratore.partita_iva.trim() === '')) {
+        return false;
+    }
+    
+    return true;
+}
+
+async function handleDataCompletion(e) {
+    e.preventDefault();
+    
+    try {
+        // Mostra loading
+        const submitBtn = e.target.querySelector('button[type="submit"]');
+        const originalText = submitBtn.textContent;
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Salvataggio in corso...';
+        
+        // Raccogli dati dal form
+        const formData = new FormData(e.target);
+        const updatedData = {};
+        
+        for (const [key, value] of formData.entries()) {
+            if (value && value.trim() !== '') {
+                updatedData[key] = value.trim();
+            }
+        }
+        
+        // Aggiungi timestamp aggiornamento
+        updatedData.updated_at = new Date().toISOString();
+        updatedData.dati_completati = true;
+        
+        console.log('Aggiornamento dati collaboratore:', updatedData);
+        
+        // Salva su Supabase
+        const { data, error } = await supabase
+            .from('collaboratori')
+            .update(updatedData)
+            .eq('id', collaboratore.id)
+            .select()
+            .single();
+        
+        if (error) throw error;
+        
+        // Aggiorna dati locali
+        collaboratore = data;
+        
+        // Log audit
+        await logAudit('data_completion', 'Completamento dati anagrafici per firma', {
+            campi_aggiornati: Object.keys(updatedData)
+        });
+        
+        // Mostra sezione documenti
+        document.getElementById('dataCompletionSection').style.display = 'none';
+        document.getElementById('documentsSection').style.display = 'block';
+        document.getElementById('signSection').style.display = 'block';
+        
+        // Pre-compila campi firma
+        document.getElementById('signName').value = `${collaboratore.nome} ${collaboratore.cognome}`;
+        document.getElementById('signEmail').value = collaboratore.email;
+        
+        // Mostra notifica successo
+        showNotification('Dati salvati correttamente. Ora puoi procedere con la firma dei documenti.', 'success');
+        
+    } catch (error) {
+        console.error('Errore salvataggio dati:', error);
+        showNotification('Errore nel salvataggio dei dati. Riprova.', 'error');
+    } finally {
+        // Ripristina bottone
+        const submitBtn = e.target.querySelector('button[type="submit"]');
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Salva e Procedi con la Firma';
+    }
+}
+
+function showNotification(message, type = 'info') {
+    // Crea elemento notifica
+    const notification = document.createElement('div');
+    notification.className = `notification notification-${type}`;
+    notification.textContent = message;
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 15px 20px;
+        background: ${type === 'success' ? '#4caf50' : type === 'error' ? '#f44336' : '#2196f3'};
+        color: white;
+        border-radius: 5px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        z-index: 9999;
+        animation: slideIn 0.3s ease;
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // Rimuovi dopo 5 secondi
+    setTimeout(() => {
+        notification.style.animation = 'slideOut 0.3s ease';
+        setTimeout(() => notification.remove(), 300);
+    }, 5000);
 }
 
 // ===== RENDERING =====

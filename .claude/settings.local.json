@@ -45,7 +45,12 @@
       "Bash(dir:*)",
       "mcp__ide__getDiagnostics",
       "Bash(find:*)",
-      "Bash(git rm:*)"
+      "Bash(git rm:*)",
+      "Bash(git branch:*)",
+      "Bash(git checkout:*)",
+      "Bash(git restore:*)",
+      "Bash(git clean:*)",
+      "Bash(git cherry-pick:*)"
     ],
     "deny": [],
     "ask": [],

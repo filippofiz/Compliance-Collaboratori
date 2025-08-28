@@ -805,25 +805,27 @@ function openNewCollaboratore() {
     modalBody.innerHTML = `
         <h2>Nuovo Collaboratore</h2>
         <form id="newCollaboratoreForm">
+            <div style="background: #f0f8ff; padding: 10px; margin-bottom: 20px; border-radius: 5px;">
+                <strong>Campi obbligatori:</strong> Nome, Email, Tipo Collaboratore, Tipo Contratto<br>
+                <small>Il collaboratore potrà completare/correggere tutti i dati prima della firma</small>
+            </div>
+            
             <div class="form-group">
                 <label>Nome *</label>
                 <input type="text" name="nome" required>
             </div>
             <div class="form-group">
-                <label>Cognome *</label>
-                <input type="text" name="cognome" required>
+                <label>Cognome</label>
+                <input type="text" name="cognome">
             </div>
             <div class="form-group">
                 <label>Email *</label>
                 <input type="email" name="email" required>
             </div>
             <div class="form-group">
-                <label>Codice Fiscale *</label>
-                <input type="text" name="codice_fiscale" pattern="[A-Z]{6}[0-9]{2}[A-Z][0-9]{2}[A-Z][0-9]{3}[A-Z]" required>
-            </div>
-            <div class="form-group">
                 <label>Tipo Collaboratore *</label>
                 <select name="tipo_collaboratore" required>
+                    <option value="">Seleziona...</option>
                     <option value="tutor">Tutor</option>
                     <option value="consulente">Consulente</option>
                     <option value="formatore">Formatore</option>
@@ -833,10 +835,19 @@ function openNewCollaboratore() {
             <div class="form-group">
                 <label>Tipo Contratto *</label>
                 <select name="tipo_contratto" required onchange="togglePartitaIva(this)">
+                    <option value="">Seleziona...</option>
                     <option value="occasionale">Prestazione Occasionale</option>
                     <option value="partita_iva">Partita IVA</option>
                     <option value="misto">Misto</option>
                 </select>
+            </div>
+            
+            <hr style="margin: 20px 0;">
+            <h3>Dati Opzionali (compilabili dal collaboratore)</h3>
+            
+            <div class="form-group">
+                <label>Codice Fiscale</label>
+                <input type="text" name="codice_fiscale" pattern="[A-Z]{6}[0-9]{2}[A-Z][0-9]{2}[A-Z][0-9]{3}[A-Z]">
             </div>
             <div class="form-group" id="partitaIvaGroup" style="display:none;">
                 <label>Partita IVA</label>
@@ -865,10 +876,6 @@ function openNewCollaboratore() {
             <div class="form-group">
                 <label>IBAN</label>
                 <input type="text" name="iban" pattern="IT[0-9]{2}[A-Z][0-9]{22}">
-            </div>
-            <div class="form-group">
-                <label>Data Inizio *</label>
-                <input type="date" name="data_inizio" required>
             </div>
             <div class="form-group">
                 <label>Tariffa Oraria</label>

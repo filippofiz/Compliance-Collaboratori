@@ -422,7 +422,7 @@ serve(async (req: Request) => {
 
     // Prepara payload con tags per tracking
     const emailPayload = {
-      from: 'onboarding@resend.dev',  // Usa questo per test immediato
+      from: 'Documenti UpToTen <noreply@documenti.up2ten.it>',  // Nome personalizzato!
       to: [to_email],
       subject: subject,
       html: htmlContent,

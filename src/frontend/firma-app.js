@@ -220,10 +220,10 @@ function isDataComplete() {
         return false;
     }
     
-    // Usa anche il flag dati_completati se presente
-    if (collaboratore.dati_completati !== undefined) {
-        return collaboratore.dati_completati;
-    }
+    // Usa anche il flag dati_completati se presente (dopo migration)
+    // if (collaboratore.dati_completati !== undefined) {
+    //     return collaboratore.dati_completati;
+    // }
     
     return true;
 }
@@ -250,7 +250,8 @@ async function handleDataCompletion(e) {
         
         // Aggiungi timestamp aggiornamento
         updatedData.updated_at = new Date().toISOString();
-        updatedData.dati_completati = true;
+        // Aggiungi dati_completati solo se il campo esiste (dopo migration)
+        // updatedData.dati_completati = true;
         
         console.log('Aggiornamento dati collaboratore:', updatedData);
         

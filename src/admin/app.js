@@ -893,34 +893,8 @@ function openNewCollaboratore() {
     // Attach form handler
     document.getElementById('newCollaboratoreForm').addEventListener('submit', handleNewCollaboratore);
     
-    // AUTO-FILL PER TESTING - RIMUOVERE IN PRODUZIONE
-    setTimeout(() => {
-        const testNum = Math.floor(Math.random() * 1000);
-        document.querySelector('[name="nome"]').value = 'Test';
-        document.querySelector('[name="cognome"]').value = 'Collaboratore_' + testNum;
-        document.querySelector('[name="email"]').value = 'amministrazione@uptoten.it';
-        document.querySelector('[name="codice_fiscale"]').value = 'TSTCLL80A01H501' + String.fromCharCode(65 + (testNum % 26));
-        document.querySelector('[name="tipo_collaboratore"]').value = 'tutor';
-        document.querySelector('[name="tipo_contratto"]').value = ['occasionale', 'partita_iva', 'misto'][testNum % 3];
-        
-        // Se partita IVA, compila anche quello
-        const tipoContratto = document.querySelector('[name="tipo_contratto"]').value;
-        if (tipoContratto === 'partita_iva' || tipoContratto === 'misto') {
-            togglePartitaIva(document.querySelector('[name="tipo_contratto"]'));
-            document.querySelector('[name="partita_iva"]').value = '12345678' + String(testNum).padStart(3, '0');
-        }
-        
-        document.querySelector('[name="telefono"]').value = '333123' + String(testNum).padStart(4, '0');
-        document.querySelector('[name="indirizzo"]').value = 'Via Test ' + testNum;
-        document.querySelector('[name="citta"]').value = 'Roma';
-        document.querySelector('[name="cap"]').value = '00100';
-        document.querySelector('[name="provincia"]').value = 'RM';
-        document.querySelector('[name="iban"]').value = 'IT60X0542811101000000' + String(testNum).padStart(6, '0');
-        document.querySelector('[name="data_inizio"]').value = new Date().toISOString().split('T')[0];
-        document.querySelector('[name="tariffa_oraria"]').value = '30';
-        
-        logger.log('🧪 FORM AUTO-COMPILATO PER TESTING');
-    }, 100);
+    // Close modal handler
+    document.getElementById('btnCloseModal').addEventListener('click', closeModal);
 }
 
 function togglePartitaIva(select) {
@@ -963,7 +937,7 @@ async function handleNewCollaboratore(e) {
     collaboratore.stato = 'pending';
     collaboratore.limite_annuale = 5000;
     collaboratore.importo_anno_corrente = 0;
-    collaboratore.dati_completati = false; // Flag per indicare dati da completare
+    // Non impostare dati_completati se il campo non esiste ancora in Supabase
     
     try {
         // Salva su Supabase
